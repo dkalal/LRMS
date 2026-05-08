@@ -1,0 +1,66 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}LRMS{% endblock %}</title>
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+    <div class="min-h-screen">
+        {% if user.is_authenticated %}
+            <header class="border-b border-slate-200 bg-white">
+                <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h1 class="text-xl font-semibold text-slate-900">LATRA Client Records System</h1>
+                        <p class="text-sm text-slate-500">{{ current_tenant.name|default:"No tenant assigned" }}</p>
+                    </div>
+                    <nav class="flex flex-wrap gap-2 text-sm">
+                        <a class="rounded-md px-3 py-2 hover:bg-slate-100" href="{% url 'dashboard:home' %}">Dashboard</a>
+                        <a class="rounded-md px-3 py-2 hover:bg-slate-100" href="{% url 'customers:list' %}">Customers</a>
+                        <a class="rounded-md px-3 py-2 hover:bg-slate-100" href="{% url 'brokers:list' %}">Brokers</a>
+                        <a class="rounded-md px-3 py-2 hover:bg-slate-100" href="{% url 'vehicles:list' %}">Vehicles</a>
+                        <a class="rounded-md px-3 py-2 hover:bg-slate-100" href="{% url 'latra:list' %}">LATRA Records</a>
+                        <a class="rounded-md px-3 py-2 hover:bg-slate-100" href="{% url 'latra:status_list' 'expiring' %}">Expiring Soon</a>
+                        <a class="rounded-md px-3 py-2 hover:bg-slate-100" href="{% url 'latra:status_list' 'expired' %}">Expired</a>
+                        {% if user.can_manage_users %}
+                            <a class="rounded-md px-3 py-2 hover:bg-slate-100" href="{% url 'accounts:user_list' %}">Users</a>
+                        {% endif %}
+                        {% if user.can_view_reports %}
+                            <a class="rounded-md px-3 py-2 hover:bg-slate-100" href="{% url 'reports' %}">Reports</a>
+                        {% endif %}
+                    </nav>
+                    <div class="flex items-center gap-3 text-sm">
+                        <span class="text-slate-500">{{ user.get_full_name|default:user.username }}</span>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button class="rounded-md bg-slate-900 px-3 py-2 font-medium text-white" type="submit">Logout</button>
+                        </form>
+                    </div>
+                </div>
+            </header>
+        {% endif %}
+        <main class="mx-auto max-w-7xl px-4 py-6">
+            {% if messages %}
+                <div class="mb-4 space-y-2">
+                    {% for message in messages %}
+                        <div
+                            class="rounded-md border px-4 py-3 text-sm
+                            {% if message.tags == 'success' %}border-green-200 bg-green-50 text-green-800
+                            {% elif message.tags == 'error' %}border-red-200 bg-red-50 text-red-800
+                            {% elif message.tags == 'warning' %}border-amber-200 bg-amber-50 text-amber-800
+                            {% else %}border-slate-200 bg-white text-slate-700{% endif %}"
+                            role="{% if message.tags == 'error' %}alert{% else %}status{% endif %}"
+                        >
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

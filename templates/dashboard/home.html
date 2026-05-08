@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+    <div>
+        <h2 class="text-2xl font-semibold text-slate-900">Dashboard</h2>
+        <p class="mt-1 text-sm text-slate-500">Daily operational view for records, renewals, and follow-up work.</p>
+    </div>
+    <a href="{% url 'reports' %}" class="text-sm font-medium text-brand-600">Open full reports</a>
+</div>
+
+{% if dashboard_error %}
+    <div class="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        Dashboard summary is temporarily unavailable. Use the navigation above to continue working while the dashboard recovers.
+    </div>
+{% endif %}
+
+<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    {% for card in dashboard_cards %}
+        <a
+            href="{% url card.href %}{% if card.query %}?{{ card.query }}{% endif %}"
+            class="group rounded-lg border bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-brand-600
+                {% if card.tone == 'danger' %}border-red-200 hover:border-red-300
+                {% elif card.tone == 'warning' %}border-amber-200 hover:border-amber-300
+                {% elif card.tone == 'success' %}border-emerald-200 hover:border-emerald-300
+                {% elif card.tone == 'expired' %}border-slate-300 hover:border-slate-400
+                {% else %}border-slate-200 hover:border-brand-500{% endif %}"
+        >
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-sm text-slate-500">{{ card.label }}</p>
+                    <p class="mt-2 text-3xl font-semibold text-slate-950">{{ card.value }}</p>
+                </div>
+                <span class="rounded-full px-2 py-1 text-xs font-medium
+                    {% if card.tone == 'danger' %}bg-red-50 text-red-700
+                    {% elif card.tone == 'warning' %}bg-amber-50 text-amber-700
+                    {% elif card.tone == 'success' %}bg-emerald-50 text-emerald-700
+                    {% elif card.tone == 'expired' %}bg-slate-100 text-slate-700
+                    {% else %}bg-brand-50 text-brand-700{% endif %}"
+                >
+                    View
+                </span>
+            </div>
+            <p class="mt-3 text-xs text-slate-500">{{ card.hint }}</p>
+        </a>
+    {% endfor %}
+</div>
+
+<div class="mt-6 grid gap-5 xl:grid-cols-2">
+    {% url 'latra:status_list' 'expiring' as followup_url %}
+    {% include "shared/scroll_table.html" with title="Priority Follow-up" subtitle="Records due within the renewal window." view_all_url=followup_url columns=table_columns records=followup_records empty_message="No follow-up records due soon." %}
+
+    {% url 'latra:list' as latra_url %}
+    {% include "shared/scroll_table.html" with title="Recent LATRA Records" subtitle="Latest operational records in your permitted categories." view_all_url=latra_url columns=table_columns records=recent_records empty_message="No LATRA records yet." %}
+</div>
+
+<script>
+    document.addEventListener('change', function (event) {
+        const toggle = event.target.closest('[data-column-toggle]');
+        if (!toggle) {
+            return;
+        }
+        const table = toggle.closest('[data-column-table]');
+        const column = toggle.getAttribute('data-column-toggle');
+        table.querySelectorAll('[data-column="' + column + '"]').forEach(function (cell) {
+            cell.classList.toggle('hidden', !toggle.checked);
+        });
+    });
+</script>
+{% endblock %}

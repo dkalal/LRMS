@@ -1,0 +1,259 @@
+---
+trigger: always_on
+description: Professional product, architecture, UX, and software engineering instructions for LATRA Client Records System
+---
+
+# LATRA CLIENT RECORDS SYSTEM - PROFESSIONAL PRODUCT BUILD PROMPT
+
+## 1. Product Goal
+
+Build a simple, efficient, multi-tenant LATRA client records and renewal tracking system for tenant companies that help customers process LATRA-related services.
+
+Priorities:
+- daily usability
+- fast data entry
+- clear records
+- renewal follow-up efficiency
+- tenant data isolation
+- role-based access
+- simple but professional UI
+- maintainable Django architecture
+
+The product helps tenants manage:
+- customers served
+- customer phone numbers, when available
+- brokers or agents who brought customers
+- broker phone numbers
+- plate numbers
+- vehicle category
+- LATRA service records
+- issue dates
+- expiry dates
+- reminders
+- editable WhatsApp follow-up messages
+
+## 2. Technology And Architecture
+
+Use:
+- Django
+- PostgreSQL
+- Tailwind CSS
+- Django templates
+- modular monolith architecture
+
+Recommended apps:
+- accounts
+- tenants
+- customers
+- brokers
+- vehicles
+- latra
+- reminders
+- dashboard
+- audit
+
+Do not use microservices for MVP.
+Do not mix Bootstrap and Tailwind.
+
+## 3. Multi-Tenancy Rules
+
+Every business record belongs to one tenant.
+
+Tenant-scoped models:
+- Customer
+- Broker
+- Vehicle
+- LatraRecord
+- ReminderLog
+- UserVehiclePermission
+- AuditLog
+
+Rules:
+- never expose cross-tenant data
+- never trust `tenant_id` from forms
+- derive tenant from authenticated user context
+- tenant-filter every query
+
+## 4. Roles And Access
+
+Roles:
+- Admin
+- Manager
+- Receptionist
+
+Admin can:
+- manage users
+- assign vehicle categories
+- manage all records
+- view reports
+- manage tenant settings
+
+Manager can:
+- view reports
+- manage records
+- monitor staff activity
+- access assigned categories or all categories depending on permission
+
+Receptionist can:
+- add customers
+- add brokers
+- add vehicles
+- add LATRA records
+- view expiry reminders
+- generate and edit WhatsApp follow-up messages
+- not hard-delete important records
+
+## 5. Vehicle Category Permission Rules
+
+Supported categories:
+- CAR
+- MOTORCYCLE
+- BAJAJI
+- OTHER
+- ALL
+
+Permission enforcement must affect:
+- vehicle lists
+- customer vehicle records
+- LATRA records
+- dashboard counts
+- expiry reminders
+- WhatsApp follow-up lists
+- reports
+
+Do not enforce this only in the UI. Enforce it at query and service level.
+
+## 6. Core Data Rules
+
+Customer:
+- phone number is optional
+- broker is optional
+- customer can have many vehicles
+- customer can have many LATRA records
+
+Broker:
+- can bring many customers
+- reports must include total customers, active customers, expiring records, expired records
+- no commission or payment logic in MVP
+
+Vehicle:
+- minimal MVP fields
+- use unique `tenant + plate_number`
+- vehicle can have many LATRA records
+
+LATRA service:
+- use free-text `service_name`
+- do not hard-code service choices in MVP
+
+LATRA record:
+- validate `expiry_date >= issue_date`
+- preserve expired record history
+- do not overwrite old renewal history
+- renewal should create a new record and preserve prior data
+
+## 7. Reminder And Contact Rules
+
+Contact logic:
+- if customer phone exists, contact customer
+- else if broker phone exists, contact broker
+- else mark contact as missing
+
+Reminder windows:
+- 30 days before expiry
+- 7 days before expiry
+- expiry today
+- already expired
+
+WhatsApp MVP:
+- use click-to-chat only
+- generate default message
+- let the user edit the message before opening WhatsApp
+- URL-encode the final message
+- do not send automatically
+
+## 8. UX And Engineering Rules
+
+UX principles:
+- receptionist speed
+- low training requirement
+- simple forms
+- clear tables
+- visible actions
+- mobile-friendly pages
+- searchable records
+- fast follow-up workflow
+
+Tailwind UI expectations:
+- reusable partials for buttons, inputs, cards, badges, tables, modals, alerts, empty states, pagination
+- avoid repeating giant utility strings
+- keep the interface office-friendly and practical
+
+Engineering rules:
+- keep business logic out of templates
+- use services for expiry calculation, contact selection, WhatsApp generation, permission filtering, LATRA create and renew flows, and broker statistics
+- use server-side validation
+- require login
+- preserve audit metadata
+- no hard delete for important records
+- prefer clarity over cleverness
+
+## 9. Query And Reporting Rules
+
+All list pages should support:
+- search
+- filter
+- pagination
+
+Key filters:
+- customer
+- broker
+- plate number
+- vehicle category
+- service name
+- expiry status
+- date range
+
+MVP dashboard and reports should include:
+- total customers
+- total brokers
+- total vehicles
+- active LATRA records
+- expiring in 30 days
+- expiring in 7 days
+- expiring today
+- expired records
+- customers per broker
+- active customers per broker
+
+## 10. Out Of Scope
+
+Do not build unless explicitly requested:
+- broker commission
+- payment system
+- document uploads
+- WhatsApp Cloud API
+- SMS gateway
+- mobile app
+- customer portal
+- LATRA government API integration
+- advanced AI features
+- accounting module
+
+## 11. MVP Build Order
+
+Build in this order:
+1. authentication
+2. tenant model and isolation
+3. roles
+4. vehicle category permissions
+5. broker management
+6. customer management
+7. vehicle management
+8. LATRA record management
+9. expiry status calculation
+10. dashboard
+11. expiring and expired lists
+12. editable WhatsApp flow
+13. broker reports
+14. basic audit trail
+15. UI polish

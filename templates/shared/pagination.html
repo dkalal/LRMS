@@ -1,0 +1,13 @@
+{% if page_obj %}
+    <div class="mt-4 flex items-center justify-between text-sm">
+        <p class="text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.record_state %}&record_state={{ request.GET.record_state }}{% endif %}{% if request.GET.expiry_status %}&expiry_status={{ request.GET.expiry_status }}{% endif %}" class="rounded-md border border-slate-300 px-3 py-2">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.record_state %}&record_state={{ request.GET.record_state }}{% endif %}{% if request.GET.expiry_status %}&expiry_status={{ request.GET.expiry_status }}{% endif %}" class="rounded-md border border-slate-300 px-3 py-2">Next</a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

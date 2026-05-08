@@ -1,0 +1,49 @@
+<section class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm" data-column-table>
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h2 class="text-lg font-semibold">{{ title }}</h2>
+            {% if subtitle %}
+                <p class="mt-1 text-sm text-slate-500">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+            {% if view_all_url %}
+                <a href="{{ view_all_url }}" class="text-sm font-medium text-brand-600">View all</a>
+            {% endif %}
+            <details class="relative">
+                <summary class="cursor-pointer rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700">Columns</summary>
+                <div class="absolute right-0 z-10 mt-2 w-44 rounded-md border border-slate-200 bg-white p-3 text-sm shadow-lg">
+                    {% for column in columns %}
+                        <label class="flex items-center gap-2 py-1">
+                            <input type="checkbox" checked data-column-toggle="{{ forloop.counter }}">
+                            <span>{{ column }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </details>
+        </div>
+    </div>
+    <div class="max-h-80 overflow-auto rounded-md border border-slate-100" tabindex="0">
+        <table class="min-w-full text-sm">
+            <thead class="sticky top-0 z-10 bg-slate-50 text-left text-slate-500 shadow-sm">
+                <tr>
+                    {% for column in columns %}
+                        <th class="whitespace-nowrap px-3 py-2" data-column="{{ forloop.counter }}">{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                    <tr class="border-t border-slate-100 odd:bg-white even:bg-slate-50/40">
+                        <td class="whitespace-nowrap px-3 py-2 font-medium text-slate-900" data-column="1">{{ record.vehicle.plate_number }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="2">{{ record.customer.full_name }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="3">{{ record.service_name }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="4">{{ record.expiry_date }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="{{ columns|length }}" class="px-3 py-8 text-center text-slate-500">{{ empty_message }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>

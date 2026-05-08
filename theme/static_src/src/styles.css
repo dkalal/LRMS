@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  input,
+  select,
+  textarea {
+    @apply w-full rounded-md border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-600 focus:ring-brand-600;
+  }
+
+  ul.errorlist {
+    @apply m-0 mt-1 list-none p-0 text-sm text-red-600;
+  }
+}

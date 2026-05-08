@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.errors %}Error: {% endif %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="mb-5">
+    <h2 class="text-2xl font-semibold text-slate-900">{{ form_title }}</h2>
+    <p class="mt-1 text-sm text-slate-500">{{ form_subtitle }}</p>
+</div>
+
+{% if customer_count == 0 or vehicle_count == 0 %}
+    <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <p class="font-semibold">Required setup is missing</p>
+        <p class="mt-1">LATRA records need both a customer and a vehicle before saving.</p>
+        <div class="mt-3 flex flex-wrap gap-2">
+            {% if customer_count == 0 %}<a href="{% url 'customers:create' %}" class="rounded-md bg-amber-700 px-3 py-2 font-medium text-white">Add Customer</a>{% endif %}
+            {% if vehicle_count == 0 %}<a href="{% url 'vehicles:create' %}" class="rounded-md bg-amber-700 px-3 py-2 font-medium text-white">Add Vehicle</a>{% endif %}
+        </div>
+    </div>
+{% endif %}
+
+<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <form method="post" class="space-y-6" novalidate>
+        {% csrf_token %}
+        {% include "shared/error_summary.html" with form=form %}
+        {{ form.customer }}
+        {{ form.vehicle }}
+        {{ form.broker }}
+
+        <section>
+            <div class="mb-4">
+                <h3 class="text-base font-semibold text-slate-900">Record Details</h3>
+                <p class="mt-1 text-sm text-slate-500">Free-text service names keep the MVP flexible for every LATRA service.</p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                    <label for="lookup-customer" class="mb-1 block text-sm font-medium text-slate-700">{{ form.customer.label }}</label>
+                    <div class="relative" data-lookup="customer">
+                        <input id="lookup-customer" type="text" value="{{ selected_customer_label }}" autocomplete="off" placeholder="Search customer name or phone" class="w-full rounded-md border px-3 py-2 {% if form.customer.errors %}border-red-500 bg-red-50 text-red-900 focus:border-red-600 focus:ring-red-600{% else %}border-slate-300{% endif %}">
+                        <div data-lookup-results class="absolute z-20 mt-1 hidden max-h-56 w-full overflow-auto rounded-md border border-slate-200 bg-white text-sm shadow-lg"></div>
+                    </div>
+                    <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        <span>Customer missing?</span>
+                        <a href="{% url 'customers:create' %}" class="font-medium text-brand-700">Add customer</a>
+                    </div>
+                    {% if form.customer.errors %}<p id="{{ form.customer.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.customer.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="lookup-vehicle" class="mb-1 block text-sm font-medium text-slate-700">{{ form.vehicle.label }}</label>
+                    <div class="relative" data-lookup="vehicle">
+                        <input id="lookup-vehicle" type="text" value="{{ selected_vehicle_label }}" autocomplete="off" placeholder="Search plate number or customer" class="w-full rounded-md border px-3 py-2 {% if form.vehicle.errors %}border-red-500 bg-red-50 text-red-900 focus:border-red-600 focus:ring-red-600{% else %}border-slate-300{% endif %}">
+                        <div data-lookup-results class="absolute z-20 mt-1 hidden max-h-56 w-full overflow-auto rounded-md border border-slate-200 bg-white text-sm shadow-lg"></div>
+                    </div>
+                    <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        <span>Vehicle missing?</span>
+                        <a href="{% url 'vehicles:create' %}" class="font-medium text-brand-700">Add vehicle</a>
+                    </div>
+                    {% if form.vehicle.errors %}<p id="{{ form.vehicle.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.vehicle.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="lookup-broker" class="mb-1 block text-sm font-medium text-slate-700">{{ form.broker.label }}</label>
+                    <div class="relative" data-lookup="broker">
+                        <input id="lookup-broker" type="text" value="{{ selected_broker_label }}" autocomplete="off" placeholder="Search broker name or phone" class="w-full rounded-md border px-3 py-2 {% if form.broker.errors %}border-red-500 bg-red-50 text-red-900 focus:border-red-600 focus:ring-red-600{% else %}border-slate-300{% endif %}">
+                        <div data-lookup-results class="absolute z-20 mt-1 hidden max-h-56 w-full overflow-auto rounded-md border border-slate-200 bg-white text-sm shadow-lg"></div>
+                    </div>
+                    <p class="mt-1 text-xs text-slate-500">Optional fallback when the customer has no phone number.</p>
+                    {% if form.broker.errors %}<p id="{{ form.broker.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.broker.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.service_name.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ form.service_name.label }}</label>
+                    {{ form.service_name }}
+                    {% if form.service_name.errors %}<p id="{{ form.service_name.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.service_name.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.issue_date.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ form.issue_date.label }}</label>
+                    {{ form.issue_date }}
+                    {% if form.issue_date.errors %}<p id="{{ form.issue_date.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.issue_date.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.expiry_date.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ form.expiry_date.label }}</label>
+                    {{ form.expiry_date }}
+                    {% if form.expiry_date.errors %}<p id="{{ form.expiry_date.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.expiry_date.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ form.status.label }}</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}<p id="{{ form.status.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.status.errors|join:", " }}</p>{% endif %}
+                </div>
+            </div>
+        </section>
+
+        <details class="rounded-lg border border-slate-200 p-4">
+            <summary class="cursor-pointer text-base font-semibold text-slate-900">Optional Notes</summary>
+            <div class="mt-4">
+                <label for="{{ form.notes.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ form.notes.label }}</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}<p id="{{ form.notes.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.notes.errors|join:", " }}</p>{% endif %}
+            </div>
+        </details>
+
+        <div class="sticky bottom-0 -mx-6 -mb-6 flex flex-wrap gap-3 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
+            <button type="submit" class="rounded-md bg-brand-600 px-4 py-2 font-medium text-white">Save LATRA Record</button>
+            <a href="{% url 'latra:list' %}" class="rounded-md border border-slate-300 px-4 py-2 font-medium text-slate-700">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const lookupUrls = {
+        customer: "{% url 'latra:customer_lookup' %}",
+        vehicle: "{% url 'latra:vehicle_lookup' %}",
+        broker: "{% url 'latra:broker_lookup' %}",
+    };
+
+    function debounce(fn, delay) {
+        let timeout;
+        return function () {
+            clearTimeout(timeout);
+            const args = arguments;
+            timeout = setTimeout(function () { fn.apply(null, args); }, delay);
+        };
+    }
+
+    function hiddenField(name) {
+        return document.getElementById('id_' + name);
+    }
+
+    function lookupInput(name) {
+        return document.getElementById('lookup-' + name);
+    }
+
+    function setLookupValue(name, item) {
+        hiddenField(name).value = item ? item.id : '';
+        lookupInput(name).value = item ? item.label : '';
+    }
+
+    function renderResults(container, items, onSelect) {
+        const results = container.querySelector('[data-lookup-results]');
+        results.innerHTML = '';
+        if (!items.length) {
+            results.innerHTML = '<div class="px-3 py-2 text-slate-500">No matches found</div>';
+            results.classList.remove('hidden');
+            return;
+        }
+        items.forEach(function (item) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'block w-full px-3 py-2 text-left hover:bg-slate-50';
+            button.textContent = item.label;
+            button.addEventListener('click', function () {
+                onSelect(item);
+                results.classList.add('hidden');
+            });
+            results.appendChild(button);
+        });
+        results.classList.remove('hidden');
+    }
+
+    function fetchLookup(name, query, extraParams, onSelect) {
+        const params = new URLSearchParams(extraParams || {});
+        if (query) {
+            params.set('q', query);
+        }
+        fetch(lookupUrls[name] + '?' + params.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                renderResults(document.querySelector('[data-lookup="' + name + '"]'), data.results, onSelect);
+            });
+    }
+
+    function selectCustomer(item) {
+        setLookupValue('customer', item);
+        setLookupValue('vehicle', null);
+        if (item.broker) {
+            setLookupValue('broker', item.broker);
+        }
+        fetchLookup('vehicle', '', {customer: item.id}, selectVehicle);
+    }
+
+    function selectVehicle(item) {
+        setLookupValue('vehicle', item);
+        if (item.customer) {
+            setLookupValue('customer', item.customer);
+        }
+        if (item.broker) {
+            setLookupValue('broker', item.broker);
+        }
+    }
+
+    function selectBroker(item) {
+        setLookupValue('broker', item);
+    }
+
+    function setupLookup(name, onSelect, extraParams) {
+        const input = lookupInput(name);
+        const container = document.querySelector('[data-lookup="' + name + '"]');
+        const runLookup = debounce(function () {
+            fetchLookup(name, input.value, extraParams ? extraParams() : {}, onSelect);
+        }, 250);
+        input.addEventListener('input', function () {
+            hiddenField(name).value = '';
+            runLookup();
+        });
+        input.addEventListener('focus', function () {
+            if (input.value.length === 0) {
+                fetchLookup(name, '', extraParams ? extraParams() : {}, onSelect);
+            }
+        });
+        document.addEventListener('click', function (event) {
+            if (!container.contains(event.target)) {
+                container.querySelector('[data-lookup-results]').classList.add('hidden');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        setupLookup('customer', selectCustomer, function () {
+            const brokerId = hiddenField('broker').value;
+            return brokerId ? {broker: brokerId} : {};
+        });
+        setupLookup('vehicle', selectVehicle, function () {
+            const customerId = hiddenField('customer').value;
+            return customerId ? {customer: customerId} : {};
+        });
+        setupLookup('broker', selectBroker);
+    });
+</script>
+{% endblock %}

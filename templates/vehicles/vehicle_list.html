@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div>
+        <h2 class="text-2xl font-semibold text-slate-900">Vehicles</h2>
+        <p class="mt-1 text-sm text-slate-500">Track tenant vehicles by plate, customer, category, and archive status.</p>
+    </div>
+    <a href="{% url 'vehicles:create' %}" class="rounded-md bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700">New Vehicle</a>
+</div>
+
+<div class="mb-4 grid gap-3 md:grid-cols-3">
+    <a href="{% url 'vehicles:list' %}" class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-brand-300">
+        <p class="text-sm text-slate-500">Total Vehicles</p>
+        <p class="mt-2 text-2xl font-semibold">{{ vehicle_stats.total|default:0 }}</p>
+    </a>
+    <a href="?status=active" class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-brand-300">
+        <p class="text-sm text-slate-500">Active</p>
+        <p class="mt-2 text-2xl font-semibold">{{ vehicle_stats.active|default:0 }}</p>
+    </a>
+    <a href="?status=inactive" class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-brand-300">
+        <p class="text-sm text-slate-500">Archived</p>
+        <p class="mt-2 text-2xl font-semibold">{{ vehicle_stats.inactive|default:0 }}</p>
+    </a>
+</div>
+
+{% include "shared/search_bar.html" with placeholder="Search plate number, customer, or category" %}
+
+<div class="mb-3 flex flex-wrap gap-2 text-sm">
+    {% for value, label in status_options %}
+        <a
+            href="?status={{ value }}{% if category_filter %}&category={{ category_filter }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+            class="rounded-md border px-3 py-2 {% if status_filter == value %}border-brand-600 bg-brand-50 text-brand-700{% else %}border-slate-300 bg-white text-slate-700 hover:bg-slate-50{% endif %}"
+        >
+            {{ label }}
+        </a>
+    {% endfor %}
+</div>
+
+<div class="mb-4 flex flex-wrap gap-2 text-sm">
+    <a
+        href="?status={{ status_filter }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+        class="rounded-md border px-3 py-2 {% if not category_filter %}border-brand-600 bg-brand-50 text-brand-700{% else %}border-slate-300 bg-white text-slate-700 hover:bg-slate-50{% endif %}"
+    >
+        All categories
+    </a>
+    {% for value, label in category_options %}
+        <a
+            href="?status={{ status_filter }}&category={{ value }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+            class="rounded-md border px-3 py-2 {% if category_filter == value %}border-brand-600 bg-brand-50 text-brand-700{% else %}border-slate-300 bg-white text-slate-700 hover:bg-slate-50{% endif %}"
+        >
+            {{ label }}
+        </a>
+    {% endfor %}
+</div>
+
+<section class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm" data-column-table>
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h3 class="text-lg font-semibold">Vehicle Records</h3>
+            <p class="mt-1 text-sm text-slate-500">Showing {{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }}.</p>
+        </div>
+        <details class="relative">
+            <summary class="cursor-pointer rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700">Columns</summary>
+            <div class="absolute right-0 z-10 mt-2 w-44 rounded-md border border-slate-200 bg-white p-3 text-sm shadow-lg">
+                {% for column in vehicle_columns %}
+                    <label class="flex items-center gap-2 py-1">
+                        <input type="checkbox" checked data-column-toggle="{{ forloop.counter }}">
+                        <span>{{ column }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+
+    <div class="max-h-96 overflow-auto rounded-md border border-slate-100" tabindex="0">
+        <table class="min-w-full text-sm">
+            <thead class="sticky top-0 z-10 bg-slate-50 text-left text-slate-500 shadow-sm">
+                <tr>
+                    {% for column in vehicle_columns %}
+                        <th class="whitespace-nowrap px-3 py-2" data-column="{{ forloop.counter }}">{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for vehicle in vehicles %}
+                    <tr class="border-t border-slate-100 odd:bg-white even:bg-slate-50/40">
+                        <td class="whitespace-nowrap px-3 py-2 font-medium text-slate-900" data-column="1">{{ vehicle.plate_number }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="2">{{ vehicle.customer.full_name }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="3">{{ vehicle.get_vehicle_category_display }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="4">{{ vehicle.get_status_display }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="5">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <a class="text-brand-600 hover:text-brand-900" href="{% url 'vehicles:update' vehicle.pk %}">Edit</a>
+                                {% if vehicle.status == "active" %}
+                                    <a class="text-red-600 hover:text-red-800" href="{% url 'vehicles:archive' vehicle.pk %}">Archive</a>
+                                {% else %}
+                                    <form method="post" action="{% url 'vehicles:restore' vehicle.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-brand-600 hover:text-brand-900">Restore</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-3 py-10 text-center">
+                            <p class="text-sm font-medium text-slate-700">No vehicles found</p>
+                            <p class="mt-1 text-sm text-slate-500">Create a vehicle or adjust your search/filter.</p>
+                            <a href="{% url 'vehicles:create' %}" class="mt-3 inline-flex rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white">New Vehicle</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% include "shared/pagination.html" %}
+
+<script>
+    document.addEventListener('change', function (event) {
+        const toggle = event.target.closest('[data-column-toggle]');
+        if (!toggle) {
+            return;
+        }
+        const table = toggle.closest('[data-column-table]');
+        const column = toggle.getAttribute('data-column-toggle');
+        table.querySelectorAll('[data-column="' + column + '"]').forEach(function (cell) {
+            cell.classList.toggle('hidden', !toggle.checked);
+        });
+    });
+</script>
+{% endblock %}

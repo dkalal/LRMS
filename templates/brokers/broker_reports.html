@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4 text-xl font-semibold">Broker Reports</h2>
+<div class="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+    <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 text-left text-slate-500">
+            <tr><th class="px-3 py-2">Broker</th><th class="px-3 py-2">Customers</th><th class="px-3 py-2">Active Customers</th><th class="px-3 py-2">Expiring Records</th><th class="px-3 py-2">Expired Records</th></tr>
+        </thead>
+        <tbody>
+            {% for broker, stats in broker_stats %}
+                <tr class="border-t border-slate-100">
+                    <td class="px-3 py-2">{{ broker.full_name }}</td>
+                    <td class="px-3 py-2">{{ stats.total_customers }}</td>
+                    <td class="px-3 py-2">{{ stats.active_customers }}</td>
+                    <td class="px-3 py-2">{{ stats.customers_with_expiring_records }}</td>
+                    <td class="px-3 py-2">{{ stats.customers_with_expired_records }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">No broker data available.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

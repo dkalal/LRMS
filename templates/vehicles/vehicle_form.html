@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.errors %}Error: {% endif %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="mb-5">
+    <h2 class="text-2xl font-semibold text-slate-900">{{ form_title }}</h2>
+    <p class="mt-1 text-sm text-slate-500">{{ form_subtitle }}</p>
+</div>
+
+{% if customer_count == 0 %}
+    <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <p class="font-semibold">No customers are available yet</p>
+        <p class="mt-1">Create the customer first, then return here to register the vehicle.</p>
+        <a href="{% url 'customers:create' %}" class="mt-3 inline-flex rounded-md bg-amber-700 px-3 py-2 font-medium text-white">Add Customer</a>
+    </div>
+{% endif %}
+
+<div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <form method="post" class="space-y-6" novalidate>
+        {% csrf_token %}
+        {% include "shared/error_summary.html" with form=form %}
+
+        <section>
+            <div class="mb-4">
+                <h3 class="text-base font-semibold text-slate-900">Vehicle Details</h3>
+                <p class="mt-1 text-sm text-slate-500">Plate number is unique per tenant and category controls access to this record.</p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                    <label for="{{ form.customer.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ form.customer.label }}</label>
+                    {{ form.customer }}
+                    <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        <span>Customer missing?</span>
+                        <a href="{% url 'customers:create' %}" class="font-medium text-brand-700">Add customer</a>
+                    </div>
+                    {% if form.customer.errors %}<p id="{{ form.customer.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.customer.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.plate_number.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ form.plate_number.label }}</label>
+                    {{ form.plate_number }}
+                    {% if form.plate_number.errors %}<p id="{{ form.plate_number.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.plate_number.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.vehicle_category.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ form.vehicle_category.label }}</label>
+                    {{ form.vehicle_category }}
+                    {% if form.vehicle_category.errors %}<p id="{{ form.vehicle_category.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.vehicle_category.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ form.status.label }}</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}<p id="{{ form.status.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.status.errors|join:", " }}</p>{% endif %}
+                </div>
+            </div>
+        </section>
+
+        <details class="rounded-lg border border-slate-200 p-4">
+            <summary class="cursor-pointer text-base font-semibold text-slate-900">Optional Notes</summary>
+            <div class="mt-4">
+                <label for="{{ form.notes.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ form.notes.label }}</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}<p id="{{ form.notes.id_for_label }}-error" class="mt-1 text-sm text-red-600">Error: {{ form.notes.errors|join:", " }}</p>{% endif %}
+            </div>
+        </details>
+
+        <div class="sticky bottom-0 -mx-6 -mb-6 flex flex-wrap gap-3 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur">
+            <button type="submit" class="rounded-md bg-brand-600 px-4 py-2 font-medium text-white">Save Vehicle</button>
+            <a href="{% url 'vehicles:list' %}" class="rounded-md border border-slate-300 px-4 py-2 font-medium text-slate-700">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

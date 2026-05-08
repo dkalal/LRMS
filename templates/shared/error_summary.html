@@ -1,0 +1,34 @@
+{% if form.errors %}
+    <div data-error-summary class="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 outline-none ring-red-500 focus:ring-2" role="alert" tabindex="-1">
+        <h3 class="font-semibold">There is a problem</h3>
+        <p class="mt-1 text-red-700">Review the highlighted fields below, then save again.</p>
+        <ul class="mt-2 list-disc space-y-1 pl-5">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li><a class="underline" href="#{{ field.id_for_label }}">{{ field.label }}: {{ error }}</a></li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const summary = document.querySelector('[data-error-summary]');
+            if (summary) {
+                summary.focus();
+            }
+            document.querySelectorAll('[id$="-error"]').forEach(function (error) {
+                const fieldId = error.id.replace(/-error$/, '');
+                const field = document.getElementById(fieldId);
+                if (!field) {
+                    return;
+                }
+                field.setAttribute('aria-invalid', 'true');
+                field.setAttribute('aria-describedby', error.id);
+                field.classList.add('border-red-500', 'bg-red-50', 'text-red-900', 'focus:border-red-600', 'focus:ring-red-600');
+            });
+        });
+    </script>
+{% endif %}

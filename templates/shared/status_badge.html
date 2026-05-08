@@ -1,0 +1,15 @@
+{% if status == "active" %}
+    <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">Active</span>
+{% elif status == "expiring_in_30_days" %}
+    <span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">30 Days</span>
+{% elif status == "expiring_in_7_days" %}
+    <span class="rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700">7 Days</span>
+{% elif status == "expires_today" %}
+    <span class="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">Today</span>
+{% elif status == "expired" %}
+    <span class="rounded-full bg-slate-200 px-2 py-1 text-xs font-medium text-slate-700">Expired</span>
+{% elif status == "renewed" %}
+    <span class="rounded-full bg-sky-100 px-2 py-1 text-xs font-medium text-sky-700">Renewed</span>
+{% else %}
+    <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">{{ status|title }}</span>
+{% endif %}

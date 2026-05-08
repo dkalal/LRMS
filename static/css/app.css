@@ -1,0 +1,26 @@
+input,
+select,
+textarea {
+    width: 100%;
+    border: 1px solid rgb(203 213 225);
+    border-radius: 0.375rem;
+    padding: 0.625rem 0.75rem;
+    background: white;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    border-color: rgb(15 118 110);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+
+ul.errorlist {
+    margin: 0.25rem 0 0;
+    padding: 0;
+    list-style: none;
+    color: rgb(220 38 38);
+    font-size: 0.875rem;
+}

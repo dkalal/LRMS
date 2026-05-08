@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load dict_helpers %}
+
+{% block content %}
+<div class="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div>
+        <h2 class="text-2xl font-semibold text-slate-900">{% if status_name == "expired" %}Expired Records{% else %}Expiring Soon{% endif %}</h2>
+        <p class="mt-1 text-sm text-slate-500">Prioritize follow-up by contact availability, plate, service, and expiry date.</p>
+    </div>
+    <a href="{% url 'latra:list' %}" class="rounded-md border border-slate-300 px-4 py-2 font-medium text-slate-700">All LATRA Records</a>
+</div>
+
+<form method="get" class="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-4 md:flex-row">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search customer, broker, plate, or service" class="w-full rounded-md border border-slate-300 px-3 py-2">
+    <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 font-medium text-white">Search</button>
+</form>
+
+<section class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm" data-column-table>
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h3 class="text-lg font-semibold">Follow-up Queue</h3>
+            <p class="mt-1 text-sm text-slate-500">Showing {{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }}.</p>
+        </div>
+        <details class="relative">
+            <summary class="cursor-pointer rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700">Columns</summary>
+            <div class="absolute right-0 z-10 mt-2 w-44 rounded-md border border-slate-200 bg-white p-3 text-sm shadow-lg">
+                {% for column in reminder_columns %}
+                    <label class="flex items-center gap-2 py-1">
+                        <input type="checkbox" checked data-column-toggle="{{ forloop.counter }}">
+                        <span>{{ column }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+
+    <div class="max-h-96 overflow-auto rounded-md border border-slate-100" tabindex="0">
+        <table class="min-w-full text-sm">
+            <thead class="sticky top-0 z-10 bg-slate-50 text-left text-slate-500 shadow-sm">
+                <tr>
+                    {% for column in reminder_columns %}
+                        <th class="whitespace-nowrap px-3 py-2" data-column="{{ forloop.counter }}">{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                    {% with contact=contact_info|get_item:record.pk %}
+                    <tr class="border-t border-slate-100 odd:bg-white even:bg-slate-50/40">
+                        <td class="whitespace-nowrap px-3 py-2 font-medium text-slate-900" data-column="1">{{ record.vehicle.plate_number }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="2">{{ record.customer.full_name }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="3">
+                            <span class="font-medium">{{ contact.contact_type }}</span>
+                            <span class="text-slate-500">{{ contact.phone_number|default:"Missing" }}</span>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="4">{{ record.service_name }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="5">{{ record.expiry_date }}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="6">{% include "shared/status_badge.html" with status=record_status|get_item:record.pk %}</td>
+                        <td class="whitespace-nowrap px-3 py-2" data-column="7">
+                            <a class="text-brand-600 hover:text-brand-900" href="{% url 'latra:whatsapp' record.pk %}">WhatsApp</a>
+                        </td>
+                    </tr>
+                    {% endwith %}
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-3 py-10 text-center">
+                            <p class="text-sm font-medium text-slate-700">No reminder records found</p>
+                            <p class="mt-1 text-sm text-slate-500">Try another search or review all LATRA records.</p>
+                            <a href="{% url 'latra:list' %}" class="mt-3 inline-flex rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white">All LATRA Records</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% include "shared/pagination.html" %}
+
+<script>
+    document.addEventListener('change', function (event) {
+        const toggle = event.target.closest('[data-column-toggle]');
+        if (!toggle) {
+            return;
+        }
+        const table = toggle.closest('[data-column-table]');
+        const column = toggle.getAttribute('data-column-toggle');
+        table.querySelectorAll('[data-column="' + column + '"]').forEach(function (cell) {
+            cell.classList.toggle('hidden', !toggle.checked);
+        });
+    });
+</script>
+{% endblock %}
