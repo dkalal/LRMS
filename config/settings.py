@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import environ
+import os
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,6 +29,12 @@ ALLOWED_HOSTS = [
 if "testserver" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("testserver")
 
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in env("CSRF_TRUSTED_ORIGINS", default="").split(",")
+    if origin.strip()
+]
+
 
 INSTALLED_APPS = [
     "tailwind",
@@ -51,6 +58,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -119,8 +127,12 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 TAILWIND_APP_NAME = "theme"
-NPM_BIN_PATH = "npm.cmd"
+NPM_BIN_PATH = env(
+    "NPM_BIN_PATH",
+    default="npm.cmd" if os.name == "nt" else "npm",
+)
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -135,6 +147,7 @@ LOGOUT_REDIRECT_URL = "login"
 SESSION_COOKIE_SECURE = env("SESSION_COOKIE_SECURE")
 CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE")
 SECURE_SSL_REDIRECT = env("SECURE_SSL_REDIRECT")
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_HSTS_SECONDS = env("SECURE_HSTS_SECONDS")
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", default=False)
 SECURE_HSTS_PRELOAD = env.bool("SECURE_HSTS_PRELOAD", default=False)
