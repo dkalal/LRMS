@@ -8,7 +8,12 @@ services:
       python manage.py collectstatic --noinput
     startCommand: |
       python manage.py migrate --noinput && \
-      if [ "${BOOTSTRAP_LRMS:-false}" = "true" ]; then \
+      BOOTSTRAP_FLAG="$(echo "${BOOTSTRAP_LRMS:-false}" | tr '[:upper:]' '[:lower:]')" && \
+      if [ "$BOOTSTRAP_FLAG" = "true" ] || [ "$BOOTSTRAP_FLAG" = "1" ] || [ "$BOOTSTRAP_FLAG" = "yes" ] || [ "$BOOTSTRAP_FLAG" = "on" ]; then \
+        if [ -z "${BOOTSTRAP_ADMIN_PASSWORD:-}" ]; then \
+          echo "BOOTSTRAP_LRMS is enabled but BOOTSTRAP_ADMIN_PASSWORD is empty" 1>&2; \
+          exit 1; \
+        fi; \
         python manage.py bootstrap_lrms \
           --tenant-name "${BOOTSTRAP_TENANT_NAME:-Demo Tenant}" \
           --tenant-slug "${BOOTSTRAP_TENANT_SLUG:-demo-tenant}" \
