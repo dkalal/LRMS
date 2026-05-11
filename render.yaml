@@ -6,7 +6,16 @@ services:
     buildCommand: |
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
-    startCommand: python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: |
+      python manage.py migrate --noinput && \
+      if [ "${BOOTSTRAP_LRMS:-false}" = "true" ]; then \
+        python manage.py bootstrap_lrms \
+          --tenant-name "${BOOTSTRAP_TENANT_NAME:-Demo Tenant}" \
+          --tenant-slug "${BOOTSTRAP_TENANT_SLUG:-demo-tenant}" \
+          --username "${BOOTSTRAP_ADMIN_USERNAME:-admin}" \
+          --password "${BOOTSTRAP_ADMIN_PASSWORD}"; \
+      fi && \
+      gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.3"
@@ -30,6 +39,10 @@ services:
         fromDatabase:
           name: lrms-db
           property: connectionString
+      - key: BOOTSTRAP_LRMS
+        value: "false"
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
 
 databases:
   - name: lrms-db

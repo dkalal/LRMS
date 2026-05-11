@@ -1,6 +1,8 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 from django.utils import timezone
 
 from accounts.models import RoleChoices, User, UserVehiclePermission, VehicleCategoryChoices
@@ -26,6 +28,12 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if not settings.DEBUG and options.get("password") == "admin12345":
+            raise CommandError(
+                "Refusing to bootstrap with the default password in production. "
+                "Pass a strong --password value (or disable bootstrapping)."
+            )
+
         tenant, _ = TenantCompany.objects.get_or_create(
             slug=options["tenant_slug"],
             defaults={"name": options["tenant_name"]},
