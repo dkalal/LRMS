@@ -37,8 +37,6 @@ CSRF_TRUSTED_ORIGINS = [
 
 
 INSTALLED_APPS = [
-    "tailwind",
-    "theme",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -128,11 +126,6 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-TAILWIND_APP_NAME = "theme"
-NPM_BIN_PATH = env(
-    "NPM_BIN_PATH",
-    default="npm.cmd" if os.name == "nt" else "npm",
-)
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
